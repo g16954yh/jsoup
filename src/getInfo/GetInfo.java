@@ -18,9 +18,51 @@ import java.util.Random;
 public class GetInfo {
 
 	public static void main(String[] args) {
+
 		FileWriter fw = null;
 		List<String> urls = new ArrayList<>();
 		long interval = 30000;
+
+		// 口コミページのURLの取得
+		try {
+			fw = new FileWriter("url.txt", true);
+			for (int i = 2; i <= 54; i++) {
+				long startTime = System.currentTimeMillis();
+				Document document = Jsoup.connect("https://search.travel.rakuten.co.jp/ds/yado/tokyo/p" + i).get();
+				long endTime = System.currentTimeMillis();
+				long time = interval - (endTime - startTime);
+
+				if (time > 0) {
+					try {
+						// 待機ミリ秒分、待つ
+						Thread.sleep(time);
+					} catch (InterruptedException e) {
+						System.out.println("ミリ秒待機失敗");
+					}
+				}
+
+				Elements url = document.select(".cstmrEvl a");
+				for (Element element : url) {
+					String HotelURL = element.attr("href");
+					fw.write(HotelURL + "\n");
+				}
+
+				fw.flush();
+				System.out.println("書き出し完了");
+
+			}
+		} catch (IOException e) {
+			System.out.println("ファイル書き込みエラーです");
+		} finally {
+			if (fw != null) {
+				try {
+					if (fw != null) {
+						fw.close();
+					}
+				} catch (IOException e) {
+				}
+			}
+		}
 
 		// URLファイルの読み込み
 		String filename = "url.txt";
@@ -51,16 +93,16 @@ public class GetInfo {
 				interval += r.nextInt(300);
 				long time = interval - (endTime - startTime);
 
-				if(time>0) {
+				if (time > 0) {
 					try {
-						// 待機ミリ秒分、待つ 
-						Thread.sleep(time); 
-					} catch(InterruptedException e) {
-						System.out.println("ミリ秒待機失敗"); 
+						// 待機ミリ秒分、待つ
+						Thread.sleep(time);
+					} catch (InterruptedException e) {
+						System.out.println("ミリ秒待機失敗");
 					}
 				}
 				System.out.println("待機完了　" + i);
-				
+
 				Elements HotelName = document.select("#RthNameArea h2 a");
 				Elements TotalRate = document.select(".rateTotal span");
 				Elements DitailRate = document.select(".rateItem span");
@@ -80,29 +122,7 @@ public class GetInfo {
 					count++;
 				}
 			}
-			/**
-			 * URLの取得 fw = new FileWriter("url.txt", true); for (int i = 2; i <= 54; i++) {
-			 * long startTime = System.currentTimeMillis();
-			 * Document document = Jsoup.connect("https://search.travel.rakuten.co.jp/ds/yado/tokyo/p" +i).get();
-			 * long endTime = System.currentTimeMillis(); 
-			 * long time = interval - (endTime - startTime);
-			 * 
-			 * if (time > 0) { 
-			 * try { 
-			 * // 待機ミリ秒分、待つ 
-			 * Thread.sleep(time); 
-			 * } catch (InterruptedException e) { 
-			 * System.out.println("ミリ秒待機失敗"); 
-			 * } 
-			 * }
-			 * 
-			 * Elements url = document.select(".cstmrEvl a"); 
-			 * for (Element element : url) {
-			 * String HotelURL = element.attr("href"); 
-			 * fw.write(HotelURL + "\n"); 
-			 * } 
-			 * }
-			 */
+
 			fw.flush();
 			System.out.println("書き出し完了");
 
@@ -118,6 +138,9 @@ public class GetInfo {
 				}
 			}
 		}
+
+		WriteCSV write = new WriteCSV();
+		write.writeCSV("data.txt");
 
 	}
 }
